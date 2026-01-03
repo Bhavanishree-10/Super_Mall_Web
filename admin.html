@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="Icon" href="src/mall-icon.png">
+
+    <title>SuperMall | Admin HQ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { background-color: #f3f4f6; }
+        .admin-layout { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: #1e293b; color: white; display: flex; flex-direction: column; position: fixed; height: 100%; }
+        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #334155; }
+        .sidebar-menu { flex: 1; padding-top: 20px; }
+        .menu-item { padding: 15px 20px; cursor: pointer; color: #94a3b8; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .menu-item:hover, .menu-item.active { background: #334155; color: white; border-right: 4px solid #4F46E5; }
+        
+        /* Main Content */
+        .main-content { flex: 1; padding: 30px; margin-left: 260px; }
+        
+        /* Views (We toggle these) */
+        .view-section { display: none; animation: fadeIn 0.4s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Dashboard Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #4F46E5; }
+        .stat-card h3 { color: #64748b; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: bold; color: #1e293b; }
+
+        /* Tables */
+        .table-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; color: #64748b; }
+        tr:hover { background: #f1f5f9; cursor: pointer; }
+        
+        /* Badges */
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .status-good { background: #dcfce7; color: #166534; }
+        .status-bad { background: #fee2e2; color: #991b1b; }
+
+        /* Charts Container */
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .chart-box { background: white; padding: 20px; border-radius: 12px; height: 350px; }
+
+        /* Detail View Header */
+        .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 20px; border-radius: 12px; }
+        .back-btn { background: #e2e8f0; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-layout">
+        <div class="sidebar">
+            <div class="sidebar-header"><i class="fas fa-chart-line"></i> ADMIN CONSOLE</div>
+            <div class="sidebar-menu">
+                <div class="menu-item active" onclick="switchView('dashboard')"><i class="fas fa-home"></i> Dashboard</div>
+                <div class="menu-item" onclick="switchView('analytics')"><i class="fas fa-chart-pie"></i> Analytics</div>
+                <div class="menu-item" onclick="switchView('shop-mgmt')"><i class="fas fa-store"></i> Shop Management</div>
+                <div class="menu-item" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="dashboard" class="view-section active">
+                <h2 style="margin-bottom: 20px;">Mall Performance Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-color: #3b82f6;">
+                        <h3>Total Shops</h3>
+                        <div class="value" id="totalShops">0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #10b981;">
+                        <h3>Total Revenue</h3>
+                        <div class="value" id="totalRev">₹0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #f59e0b;">
+                        <h3>Monthly Traffic</h3>
+                        <div class="value">45.2K</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #ef4444;">
+                        <h3>Tax Pending</h3>
+                        <div class="value" id="taxRev">₹0</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">Shop Performance (Click row for details)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Shop Name</th>
+                                <th>Category</th>
+                                <th>Products</th>
+                                <th>Revenue</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTable">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="analytics" class="view-section">
+                <h2 style="margin-bottom: 20px;">Market Strategies & Insights</h2>
+                <div class="charts-row">
+                    <div class="chart-box">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-box" style="height: 300px;">
+                    <h3 style="margin-bottom:15px;">Customer Peak Hours Strategy</h3>
+                    <canvas id="trafficChart"></canvas>
+                </div>
+            </div>
+
+            <div id="shop-mgmt" class="view-section">
+                <h2 style="margin-bottom: 20px;">Shop Management</h2>
+                <div class="table-container">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                        <h3>Active Contracts</h3>
+                        <button style="background:#4F46E5; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">+ Add New Shop</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Shop ID</th>
+                                <th>Name</th>
+                                <th>Owner Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shopMgmtTable">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="shop-detail" class="view-section">
+                <div class="detail-header">
+                    <div>
+                        <h2 id="detailName">Shop Name</h2>
+                        <span id="detailCat" style="color:#64748b;">Category</span>
+                    </div>
+                    <button class="back-btn" onclick="switchView('dashboard')">← Back to Dashboard</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-color: #8b5cf6;">
+                        <h3>Products Listed</h3>
+                        <div class="value" id="detailCount">0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: #10b981;">
+                        <h3>Shop Revenue</h3>
+                        <div class="value" id="detailRev">₹0</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3>Product Sales Breakdown</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Unit Price</th>
+                                <th>Units Sold (Est)</th>
+                                <th>Total Sales</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailProductTable">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>

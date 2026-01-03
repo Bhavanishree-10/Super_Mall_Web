@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Mall | Premium Shopping Experience</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="Icon" href="src/mall-icon.png">
+    
+    <style>
+        /* --- 1. GLOBAL VARIABLES & RESET --- */
+        :root {
+            --primary: #0f172a; /* Deep Navy */
+            --secondary: #334155;
+            --accent: #d946ef; /* Fuschia for Favorites */
+            --gold: #f59e0b; 
+            --bg-light: #f8fafc;
+            --glass: rgba(0, 0, 0, 0.85); 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-light); 
+            color: var(--secondary);
+            overflow-x: hidden;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+
+        /* --- 2. NAVIGATION BAR --- */
+        .navbar {
+            background-color: var(--primary);
+            padding: 1rem 5%;
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .logo { 
+            font-size: 1.6rem; font-weight: 700; color: white; 
+            display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none;
+        }
+        .logo i { color: #38bdf8; }
+
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        
+        .nav-item {
+            color: #94a3b8; cursor: pointer; transition: 0.3s;
+            display: flex; flex-direction: column; align-items: center; font-size: 0.85rem;
+        }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 4px; }
+        .nav-item:hover, .nav-item.active { color: white; }
+        .nav-item.active i { color: #38bdf8; }
+
+        .fav-wrapper { position: relative; }
+        .badge {
+            position: absolute; top: -8px; right: -8px;
+            background: var(--accent); color: white;
+            border-radius: 50%; width: 18px; height: 18px;
+            font-size: 0.7rem; font-weight: bold; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+
+        .hamburger { display: none; color: white; font-size: 1.5rem; cursor: pointer; }
+
+        /* --- 3. MOBILE MENU --- */
+        .mobile-menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--glass); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            z-index: 2000;
+            display: flex; flex-direction: column; 
+            justify-content: flex-start; 
+            padding-top: 100px; 
+            align-items: center; 
+            gap: 1.5rem; 
+            transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .mobile-menu-overlay.open { transform: translateX(0); }
+        
+        .mobile-link {
+            font-size: 1.4rem; color: rgba(255, 255, 255, 0.95); text-decoration: none; font-weight: 500;
+            display: flex; align-items: center; gap: 15px; transition: 0.3s;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+        .mobile-link:hover { color: #38bdf8; border-color: #38bdf8; padding-left: 10px; }
+        .mobile-link i { font-size: 1.2rem; width: 30px; text-align: center; }
+
+        .mobile-close {
+            position: absolute; top: 25px; right: 25px;
+            font-size: 2rem; color: white; cursor: pointer;
+            background: rgba(255,255,255,0.1); width: 45px; height: 45px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            transition: 0.3s;
+        }
+        .mobile-close:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+
+        /* --- 4. SECTIONS & SLIDER --- */
+        .page-section { display: none; padding: 20px 5% 60px; animation: fadeIn 0.6s; max-width: 1600px; margin: 0 auto; width: 100%; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .slider-wrapper {
+            position: relative; width: 100%; height: 350px; 
+            border-radius: 20px; overflow: hidden; margin-bottom: 40px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        @media(min-width: 1024px) { .slider-wrapper { height: 75vh; } }
+
+        .slide {
+            position: absolute; width: 100%; height: 100%; opacity: 0; transition: opacity 1s;
+            background-size: cover; background-position: center;
+        }
+        .slide.active { opacity: 1; }
+        .slide-content {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white; padding: 40px 30px;
+        }
+        .slide-content h1 { font-size: 2.2rem; margin-bottom: 5px; }
+
+        /* --- 5. SHOPS GRID (Updated for 3x2 Layout) --- */
+        .section-header { text-align: center; margin: 40px 0 30px; position: relative; }
+        .section-header h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 10px; }
+        .section-header::after {
+            content: ''; display: block; width: 60px; height: 4px; 
+            background: var(--accent); margin: 0 auto; border-radius: 2px;
+        }
+
+        .grid-shops {
+            display: grid; gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        @media(min-width: 768px) { 
+            .grid-shops { grid-template-columns: repeat(3, 1fr); gap: 20px; } 
+        }
+
+        @media(min-width: 1200px) { 
+            .grid-shops { grid-template-columns: repeat(4, 1fr); } 
+            #featuredShops { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .shop-card {
+            background: white; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: all 0.3s;
+            cursor: pointer; border: 1px solid #e2e8f0;
+        }
+        .shop-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-color: #38bdf8; }
+        
+        .shop-img {
+            height: 130px; background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; color: var(--secondary); position: relative;
+        }
+        .shop-rating {
+            position: absolute; top: 10px; right: 10px; background: white; 
+            padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.8rem;
+            display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .shop-info { padding: 15px; text-align: center; }
+        .shop-category { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .shop-btn {
+            margin-top: 8px; width: 100%; padding: 8px; font-size: 0.9rem;
+            background: var(--primary); color: white; border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .shop-btn:hover { background: #38bdf8; }
+
+        /* --- 6. EVENTS --- */
+        .grid-events { display: grid; gap: 20px; grid-template-columns: 1fr; }
+        @media(min-width: 768px) { .grid-events { grid-template-columns: repeat(3, 1fr); } }
+        .event-card { 
+            background: white; border-radius: 12px; padding: 25px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-left: 5px solid var(--accent);
+        }
+        .event-date { color: var(--accent); font-weight: 700; font-size: 0.9rem; margin-bottom: 8px;}
+
+        /* --- 7. PRODUCT DETAIL GRID --- */
+        .grid-products {
+            display: grid; gap: 15px;
+            grid-template-columns: repeat(2, 1fr); 
+        }
+        @media(min-width: 768px) { .grid-products { grid-template-columns: repeat(3, 1fr); } }
+        @media(min-width: 1024px) { .grid-products { grid-template-columns: repeat(5, 1fr); } } 
+
+        .product-card {
+            background: white; border-radius: 12px; padding: 12px;
+            border: 1px solid #e2e8f0; transition: 0.3s;
+            display: flex; flex-direction: column;
+        }
+        .product-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-color: transparent; }
+        
+        .prod-img-box {
+            height: 140px; background: #fff; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+            overflow: hidden; /* Added to keep image inside */
+        }
+        
+        /* NEW: Added to handle product images properly */
+        .prod-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            mix-blend-mode: multiply;
+        }
+
+        .prod-name { 
+            font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; color: var(--secondary);
+            overflow: hidden; text-overflow: ellipsis; display: -webkit-box; ; -webkit-box-orient: vertical;
+        }
+        .prod-price { font-size: 1rem; color: var(--primary); font-weight: 700; margin-bottom: 10px; margin-top: auto;}
+        
+        .btn-fav-pro {
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;
+            background: white; color: #64748b; font-weight: 600; cursor: pointer; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.3s;
+        }
+        .btn-fav-pro:hover { background: #f1f5f9; }
+        .btn-fav-pro.active { background: #fdf2f8; border-color: var(--accent); color: var(--accent); }
+        .btn-fav-pro.active i { animation: pop 0.3s ease; }
+        @keyframes pop { 50% { transform: scale(1.4); } }
+
+        /* --- 8. FOOTER --- */
+        .footer { background: #111; color: #94a3b8; padding: 60px 5% 20px; margin-top: auto; }
+        .footer-grid { display: grid; gap: 40px; max-width: 1400px; margin: 0 auto; }
+        @media(min-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr 1fr; } }
+        
+        .footer h3 { color: white; margin-bottom: 20px; font-size: 1.2rem; border-bottom: 2px solid #38bdf8; display: inline-block; padding-bottom: 5px; }
+        .footer-link { display: block; margin-bottom: 10px; cursor: pointer; transition: 0.3s; }
+        .footer-link:hover { color: white; padding-left: 5px; }
+        .feedback-form input, .feedback-form textarea {
+            width: 100%; background: #1e293b; border: 1px solid #334155; 
+            padding: 12px; color: white; margin-bottom: 10px; border-radius: 6px;
+        }
+        .feedback-form button {
+            background: #38bdf8; color: #0f172a; border: none; width: 100%;
+            padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 700;
+        }
+
+        /* Responsive Tweaks */
+        @media(max-width: 768px) {
+            .nav-links { display: none; }
+            .hamburger { display: block; }
+            .section-header h2 { font-size: 1.5rem; }
+            .grid-shops { gap: 10px; }
+            .shop-img { height: 110px; font-size: 2rem; }
+            .shop-info { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo" onclick="switchTab('home')">
+            <i class="fas fa-shopping-bag"></i> SUPER MALL
+        </div>
+
+        <div class="nav-links">
+            <div class="nav-item active" onclick="switchTab('home')"><i class="fas fa-home"></i>Home</div>
+            <div class="nav-item" onclick="switchTab('shops')"><i class="fas fa-store"></i>Shops</div>
+            <div class="nav-item fav-wrapper" onclick="switchTab('favorites')">
+                <i class="fas fa-heart"></i>Favorites
+                <div class="badge" id="favBadge">0</div>
+            </div>
+            <div class="nav-item" onclick="switchTab('contact')"><i class="fas fa-headset"></i>Contact</div>
+            <div class="nav-item" onclick="openProfile()"><i class="fas fa-user-circle"></i>Profile</div>
+        </div>
+
+        <div class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+    </nav>
+
+    <div class="mobile-menu-overlay" id="mobileMenu">
+        <div class="mobile-close" onclick="toggleMenu()">×</div>
+        <a href="#" class="mobile-link" onclick="switchTab('home'); toggleMenu()">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <a href="#" class="mobile-link" onclick="switchTab('shops'); toggleMenu()">
+            <i class="fas fa-store"></i> Shops
+        </a>
+        <a href="#" class="mobile-link" onclick="switchTab('favorites'); toggleMenu()">
+            <i class="fas fa-heart"></i> My Favorites
+        </a>
+        <a href="#" class="mobile-link" onclick="switchTab('contact'); toggleMenu()">
+            <i class="fas fa-headset"></i> Contact Us
+        </a>
+        <a href="#" class="mobile-link" onclick="openProfile(); toggleMenu()">
+            <i class="fas fa-user-circle"></i> Profile
+        </a>
+    </div>
+
+    <main>
+        
+        <div id="home" class="page-section active">
+            <div class="slider-wrapper">
+                 <div class="slide active" style="background-image: url('src/mall.png');">
+                    <div class="slide-content"><h1>Welcome to Super Mall</h1><p>Experience Premium Shopping</p></div>
+                </div>
+                <div class="slide" style="background-image: url('src/hall.png');">
+                    <div class="slide-content"><h1>The Luxury Wing</h1><p>International Brands</p></div>
+                </div>
+                <div class="slide" style="background-image: url('src/shop.png');">
+                    <div class="slide-content"><h1>Tech & Gaming</h1><p>Future is Here</p></div>
+                </div>
+                <div class="slide" style="background-image: url('src/fun-zone.png');">
+                    <div class="slide-content"><h1>Food Court</h1><p>Taste the World</p></div>
+                </div>
+            </div>
+
+            <div class="section-header"><h2>Featured Brands</h2></div>
+            <div class="grid-shops" id="featuredShops"></div>
+
+            <div class="section-header"><h2>Upcoming Events</h2></div>
+            <div class="grid-events">
+                <div class="event-card">
+                    <div class="event-date">THIS WEEKEND</div>
+                    <h3>Midnight Sale</h3>
+                    <p>Flat 50% off on all Fashion brands from 9 PM to 12 AM.</p>
+                </div>
+                <div class="event-card">
+                    <div class="event-date">OCT 25</div>
+                    <h3>Tech Expo 2025</h3>
+                    <p>Launch of the new AI Robots in the Main Atrium.</p>
+                </div>
+                <div class="event-card">
+                    <div class="event-date">EVERY SUNDAY</div>
+                    <h3>Kids Carnival</h3>
+                    <p>Free magic shows and games at the Fun Zone.</p>
+                </div>
+            </div>
+
+            <div class="section-header"><h2>Locate Us</h2></div>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.1422937950147!2d-73.98731968482413!3d40.75889497932681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25855c6480299%3A0x55194ec5a1ae072e!2sTimes%20Square!5e0!3m2!1sen!2sus!4v1622646698942!5m2!1sen!2sus" width="100%" height="400" style="border:0; border-radius:16px; box-shadow:0 10px 20px rgba(0,0,0,0.1);" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+
+        <div id="shops" class="page-section">
+            <div class="section-header"><h2>Directory (25 Shops)</h2></div>
+            <div class="grid-shops" id="allShopsList"></div>
+        </div>
+
+        <div id="shopDetailView" class="page-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <button onclick="goBack()" style="background:transparent; border:none; cursor:pointer; font-size:1rem; display:flex; align-items:center; gap:5px; font-weight:600; color:var(--primary);">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <div style="font-size:0.8rem; color:#64748b;">Showing Products</div>
+            </div>
+            
+            <div class="section-header"><h2 id="detailTitle" style="margin:0">Shop Name</h2></div>
+            <p id="detailSub" style="text-align:center; margin-bottom:30px; color:#64748b; font-size: 0.9rem;"></p>
+            
+            <div class="grid-products" id="productGrid"></div>
+        </div>
+
+        <div id="favorites" class="page-section">
+            <div class="section-header"><h2>My Wishlist</h2></div>
+            <div id="emptyFav" style="text-align:center; padding:50px; color:#94a3b8;">
+                <i class="far fa-heart" style="font-size:5rem; margin-bottom:20px; opacity:0.5;"></i>
+                <p>Your wishlist is currently empty.</p>
+                <button onclick="switchTab('shops')" style="margin-top:15px; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:5px; cursor:pointer;">Go Shopping</button>
+            </div>
+            <div class="grid-products" id="favGrid"></div>
+        </div>
+
+        <div id="contact" class="page-section">
+             <div class="section-header"><h2>Contact Us</h2></div>
+             <p style="text-align:center;">Please check the footer for details.</p>
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <h3>Super Mall</h3>
+                <p><i class="fas fa-map-marker-alt" style="color:#38bdf8; width:20px;"></i> 100 Main Street, Tech City</p>
+                <p><i class="fas fa-phone-alt" style="color:#38bdf8; width:20px;"></i> +91 44 1234 5678</p>
+                <p><i class="fas fa-envelope" style="color:#38bdf8; width:20px;"></i> support@supermall.com</p>
+                <br>
+                <h3>Hours</h3>
+                <p>Mon - Sun: 10:00 AM - 10:00 PM</p>
+            </div>
+            <div>
+                <h3>Quick Links</h3>
+                <span class="footer-link" onclick="switchTab('home')">Home</span>
+                <span class="footer-link" onclick="switchTab('shops')">Browse Shops</span>
+                <span class="footer-link" onclick="switchTab('favorites')">My Wishlist</span>
+                <span class="footer-link">Mall Map</span>
+            </div>
+            <div class="feedback-form">
+                <h3>Feedback</h3>
+                <input type="text" placeholder="Your Name">
+                <textarea rows="3" placeholder="Tell us about your experience..."></textarea>
+                <button>Submit Feedback</button>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:50px; padding-top:20px; border-top:1px solid #333; font-size:0.8rem;">
+            © 2025 Super Mall. All rights reserved. Designed for You.
+        </div>
+    </footer>
+
+    <div id="profileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:400px; text-align:center; position:relative;">
+            
+            <span onclick="closeProfile()" style="position:absolute; top:15px; right:20px; cursor:pointer; font-size:1.5rem; color:#333;">×</span>
+            
+            <h2 style="color:#4F46E5; margin-bottom:20px;">My Profile</h2>
+
+            <div style="position:relative; width:120px; height:120px; margin:0 auto 20px;">
+                <img id="profileImgDisplay" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" 
+                     style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid #4F46E5;">
+                
+                <label for="imgInput" style="position:absolute; bottom:0; right:0; background:#4F46E5; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="imgInput" accept="image/*" style="display:none;">
+            </div>
+
+            <div style="text-align:left; background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <p style="font-size:0.8rem; color:#666;">Full Name</p>
+                <h4 id="profileName" style="margin-bottom:10px; color:#333;">Loading...</h4>
+                
+                <p style="font-size:0.8rem; color:#666;">User ID / Email</p>
+                <h4 id="profileEmail" style="color:#333;">Loading...</h4>
+            </div>
+
+            <button onclick="logoutUser()" style="width:100%; padding:12px; border:none; background:#fee2e2; color:#ef4444; font-weight:bold; border-radius:8px; cursor:pointer;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SMART DATA GENERATOR ---
+        
+        // Configuration of Shops (UPDATED: ICONS REMOVED)
+        const shopConfig = [
+            { name: "Apple Store", cat: "tech" },
+            { name: "Samsung Experience", cat: "tech" },
+            { name: "Sony Center", cat: "tech" },
+            { name: "Bose Audio", cat: "tech" },
+            { name: "Croma", cat: "tech" },
+            
+            { name: "Zara", cat: "fashion" },
+            { name: "H&M", cat: "fashion" },
+            { name: "Levi's", cat: "fashion" },
+            { name: "Nike", cat: "fashion" },
+            { name: "Adidas", cat: "fashion" },
+            { name: "Puma", cat: "fashion" },
+            { name: "FabIndia", cat: "fashion" },
+            { name: "Manyavar", cat: "fashion" },
+            
+            { name: "Rolex Boutique", cat: "luxury" },
+            { name: "Gucci", cat: "luxury" },
+            { name: "Louis Vuitton", cat: "luxury" },
+            { name: "Titan World", cat: "luxury" },
+            
+            { name: "KFC", cat: "food" },
+            { name: "McDonald's", cat: "food" },
+            { name: "Starbucks", cat: "food" },
+            { name: "Domino's Pizza", cat: "food" },
+            { name: "Taco Bell", cat: "food" },
+            { name: "Baskin Robbins", cat: "food" },
+            
+            { name: "IKEA Studio", cat: "home" },
+            { name: "Hamleys", cat: "kids" }
+        ];
+
+        // Product Templates
+        const templates = {
+            tech: ["Pro Smartphone", "Ultra Tablet", "Wireless Buds", "Smart Watch 5", "Gaming Laptop", "4K Monitor", "PowerBank 20k", "Type-C Cable", "Phone Case", "Screen Guard", "Bluetooth Speaker", "Home Assistant", "Action Camera", "Drone Mini", "VR Headset", "Mechanical Keyboard", "Gaming Mouse", "Webcam HD", "Router WiFi 6", "External SSD", "Graphics Card", "Processor Chip", "Smart Bulb", "Smart Plug", "Digital Pen"],
+            fashion: ["Slim Fit Shirt", "Denim Jacket", "Chino Pants", "Cotton T-Shirt", "Polo Shirt", "Formal Blazer", "Leather Belt", "Aviator Sunglasses", "Running Shoes", "Casual Loafers", "Ankle Socks", "Cargo Shorts", "Hoodie Sweatshirt", "Winter Coat", "Silk Scarf", "Graphic Tee", "Track Pants", "Yoga Leggings", "Summer Dress", "Handbag Tote", "Wallet Leather", "Cap Snapback", "Beanie Hat", "Cardigan Wool", "Floral Skirt"],
+            luxury: ["Gold Watch", "Diamond Ring", "Leather Handbag", "Silk Tie", "Designer Belt", "Perfume 100ml", "Cufflinks Gold", "Sunglasses Pro", "Clutch Bag", "Wallet Premium", "Scarf Cashmere", "Dress Shoes", "Tuxedo Suit", "Travel Bag", "Key Chain Silver", "Pen Luxury", "Bracelet Gold", "Necklace Pearl", "Earrings Stud", "Brooch Pin", "Watch Strap", "Passport Holder", "Briefcase", "Hat Fedora", "Gloves Leather"],
+            food: ["Combo Meal", "Large Burger", "Cheese Pizza", "Spicy Wings", "French Fries", "Cold Coffee", "Chocolate Shake", "Vanilla Cone", "Chicken Bucket", "Veg Wrap", "Paneer Tikka", "Garlic Bread", "Pasta Alfredo", "Taco Supreme", "Burrito Bowl", "Nachos Cheese", "Donut Box", "Muffin Berry", "Croissant", "Espresso Shot", "Latte Hazelnut", "Iced Tea", "Salad Bowl", "Soup Tomato", "Nuggets 6pc"],
+            home: ["Sofa 2-Seater", "Dining Table", "Office Chair", "Desk Lamp", "Bookshelf", "Rug Carpet", "Cushion Cover", "Bed Sheet Set", "Wall Clock", "Flower Vase", "Mirror Round", "Curtains Set", "Towel Bath", "Laundry Basket", "Storage Box", "Photo Frame", "Candle Holder", "Plant Pot", "Kitchen Knife", "Dinner Set", "Glass Set", "Mug Ceramic", "Scented Candle", "Doormat", "Hanger Set"],
+            kids: ["Teddy Bear", "Lego Set", "Remote Car", "Doll House", "Puzzle 3D", "Board Game", "Action Figure", "Drawing Kit", "Crayons Box", "School Bag", "Water Bottle", "Lunch Box", "Toy Train", "Building Blocks", "Soft Ball", "Kite Flyer", "Magic Kit", "Science Lab", "Story Book", "Robot Toy", "Slime Pot", "Play Dough", "Sticker Set", "Toy Gun", "Bike Mini"]
+        };
+        
+
+        // Initialize Database
+        let fullShopData = {};
+
+        function initData() {
+            shopConfig.forEach(shop => {
+                let products = [];
+                let baseList = templates[shop.cat] || templates.fashion;
+                
+                // --- NEW: Generate Auto Logo URL ---
+                // Searches for "Shop Name Logo" and gets a transparent image
+                let logoUrl = `https://tse2.mm.bing.net/th?q=${encodeURIComponent(shop.name + " logo transparent")}&w=120&h=120&c=7&rs=1&p=0`;
+
+                let count = Math.floor(Math.random() * 6) + 25; 
+                
+                for(let i=0; i<count; i++) {
+                    let baseName = baseList[i % baseList.length];
+                    let variants = ["", "Pro", "Max", "Lite", "Plus", "Edition", "v2"];
+                    let variation = variants[Math.floor(Math.random() * variants.length)];
+                    let finalName = `${shop.name.split(' ')[0]} ${baseName} ${variation}`.trim();
+
+                    // Using Bing Image Proxy to search for the specific product name
+                    let searchTerm = finalName;
+                    if(shop.cat === 'food') searchTerm = `delicious ${finalName}`; 
+                    let imgUrl = `https://tse2.mm.bing.net/th?q=${encodeURIComponent(searchTerm)}&w=300&h=300&c=7&rs=1&p=0`;
+
+                    let price = 0;
+                    if(shop.cat === 'tech') price = (Math.random() * 50000) + 1000;
+                    else if(shop.cat === 'luxury') price = (Math.random() * 200000) + 10000;
+                    else if(shop.cat === 'food') price = (Math.random() * 500) + 100;
+                    else price = (Math.random() * 5000) + 500;
+
+                    products.push({
+                        id: shop.name + i,
+                        name: finalName,
+                        price: Math.floor(price),
+                        shop: shop.name,
+                        image: imgUrl
+                    });
+                }
+                // Update to include the auto-generated LOGO URL
+                fullShopData[shop.name] = { ...shop, logo: logoUrl, products: products };
+            });
+        }
+
+        // --- 2. WISHLIST LOGIC ---
+        let wishlist = [];
+
+        function toggleWishlist(btn, id, name, price, shop, image) {
+            const index = wishlist.findIndex(item => item.id === id);
+            
+            btn.classList.remove('active');
+            void btn.offsetWidth; 
+
+            if (index === -1) {
+                wishlist.push({id, name, price, shop, image});
+                btn.classList.add('active');
+                btn.innerHTML = `<i class="fas fa-heart"></i> Wishlisted`;
+            } else {
+                wishlist.splice(index, 1);
+                btn.classList.remove('active');
+                btn.innerHTML = `<i class="far fa-heart"></i> Add to Wishlist`;
+            }
+            updateBadge();
+        }
+
+        function updateBadge() {
+            const badge = document.getElementById('favBadge');
+            badge.innerText = wishlist.length;
+            badge.style.opacity = wishlist.length > 0 ? 1 : 0;
+        }
+
+        // --- 3. RENDERING ---
+        
+        function renderFeatured() {
+            const container = document.getElementById('featuredShops');
+            const featuredNames = ["Apple Store", "Nike", "Rolex Boutique", "KFC", "Zara", "Sony Center"];
+            featuredNames.forEach(name => {
+                if(fullShopData[name]) container.innerHTML += createShopCard(fullShopData[name]);
+            });
+        }
+
+        function renderAllShops() {
+            const container = document.getElementById('allShopsList');
+            shopConfig.forEach(shop => {
+                container.innerHTML += createShopCard(fullShopData[shop.name]);
+            });
+        }
+
+        function createShopCard(shop) {
+            const safeName = shop.name.replace(/'/g, "\\'");
+            return `
+                <div class="shop-card" onclick="openShop('${safeName}')">
+                    <div class="shop-img">
+                        <img src="${shop.logo}" alt="${shop.name}" 
+                             style="width:80%; height:80%; object-fit:contain; mix-blend-mode:multiply;">
+                        
+                        <div class="shop-rating"><i class="fas fa-star" style="color:var(--gold)"></i> 4.8</div>
+                    </div>
+                    <div class="shop-info">
+                        <div class="shop-category">${shop.cat}</div>
+                        <h3 style="font-size:1rem; color:var(--primary); margin-bottom:5px;">${shop.name}</h3>
+                        <div style="font-size:0.75rem; color:#94a3b8;">${shop.products.length} Products</div>
+                        <button class="shop-btn">View Collection</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openShop(name) {
+            switchTab('shopDetailView');
+            const data = fullShopData[name];
+            document.getElementById('detailTitle').innerText = data.name;
+            document.getElementById('detailSub').innerText = `${data.cat.toUpperCase()} • ${data.products.length} Items Available`;
+            
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = "";
+            
+            data.products.forEach(prod => {
+                const isFav = wishlist.find(item => item.id === prod.id);
+                
+                const safeName = prod.name.replace(/'/g, "\\'");
+                const safeShop = prod.shop.replace(/'/g, "\\'");
+                const safeId = prod.id.replace(/'/g, "\\'");
+                const safeImg = prod.image;
+
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div class="prod-img-box">
+                             <img src="${safeImg}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+                        </div>
+                        <div class="prod-name">${prod.name}</div>
+                        <div class="prod-price">₹${prod.price.toLocaleString('en-IN')}</div>
+                        <button class="btn-fav-pro ${isFav ? 'active' : ''}" 
+                                onclick="toggleWishlist(this, '${safeId}', '${safeName}', ${prod.price}, '${safeShop}', '${safeImg}')">
+                            <i class="${isFav ? 'fas' : 'far'} fa-heart"></i> 
+                            ${isFav ? 'Wishlisted' : 'Add to Wishlist'}
+                        </button>
+                    </div>
+                `;
+            });
+            window.scrollTo(0,0);
+        }
+
+        function renderFavorites() {
+            const grid = document.getElementById('favGrid');
+            const emptyMsg = document.getElementById('emptyFav');
+            grid.innerHTML = "";
+
+            if (wishlist.length === 0) {
+                emptyMsg.style.display = "block";
+                return;
+            }
+            emptyMsg.style.display = "none";
+
+            wishlist.forEach(item => {
+                const safeName = item.name.replace(/'/g, "\\'");
+                const safeShop = item.shop.replace(/'/g, "\\'");
+                const safeId = item.id.replace(/'/g, "\\'");
+                const safeImg = item.image;
+
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div class="prod-img-box">
+                             <img src="${safeImg}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+                        </div>
+                        <div class="prod-name">${item.name}</div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:5px;">${item.shop}</div>
+                        <div class="prod-price">₹${item.price.toLocaleString('en-IN')}</div>
+                        <button class="btn-fav-pro active" 
+                                onclick="toggleWishlist(this, '${safeId}', '${safeName}', ${item.price}, '${safeShop}', '${safeImg}'); renderFavorites();">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // --- 4. UTILS & NAVIGATION ---
+        let lastTab = 'home';
+        
+        function switchTab(tabId) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            if(tabId==='home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if(tabId==='shops') document.querySelectorAll('.nav-item')[1].classList.add('active');
+            if(tabId==='favorites') {
+                document.querySelectorAll('.nav-item')[2].classList.add('active');
+                renderFavorites();
+            }
+            if(tabId==='contact') document.querySelectorAll('.nav-item')[3].classList.add('active');
+
+            if(tabId !== 'shopDetailView') lastTab = tabId;
+            window.scrollTo(0,0);
+        }
+
+        function goBack() { switchTab(lastTab); }
+        function toggleMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+
+        // Slider
+        let slideIndex = 0;
+        function startSlider() {
+            const slides = document.querySelectorAll('.slide');
+            setInterval(() => {
+                slides[slideIndex].classList.remove('active');
+                slideIndex = (slideIndex + 1) % slides.length;
+                slides[slideIndex].classList.add('active');
+            }, 4000);
+        }
+
+        // --- 5. INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initData(); 
+            renderFeatured();
+            renderAllShops();
+            startSlider();
+        });
+
+    </script>
+    <script type="module" src="js/user-profile.js"></script>
+</body>
+</html>

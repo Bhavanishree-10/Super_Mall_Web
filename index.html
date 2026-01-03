@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SuperMall | Login</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="Icon" href="src/mall-icon.png">
+
+    <script>
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+    </script>
+
+    <style>
+        /* --- GLASSMORPHISM LOGIN STYLES --- */
+        * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        body.login-body { 
+            min-height:100vh; 
+            display:flex; 
+            justify-content:center; 
+            align-items:center; 
+            overflow:hidden; 
+        }
+
+        /* Background Image */
+        .background { 
+            position:absolute; inset:0; 
+            background: linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15)), url("https://cdn.shopify.com/s/files/1/0562/4011/1678/files/KC4.jpg?v=1709537773"); 
+            background-size:cover; background-position:center; 
+            filter: blur(3px); transform: scale(1.05); 
+        }
+
+        /* Glass Card */
+        .glass-card { 
+            position:relative; width:100%; max-width:420px; padding:38px 36px 34px; 
+            border-radius:18px; background: rgba(255,255,255,0.25); 
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border:1px solid rgba(255,255,255,0.7); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12); animation: fadeUp 0.5s ease; 
+        }
+        @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px); } to{ opacity:1; transform:translateY(0); } }
+
+        /* Typography */
+        .brand { text-align:center; margin-bottom:22px; }
+        .brand h1 { font-size:30px; font-weight:700; color:#4f46e5; }
+        .brand p { margin-top:8px; font-size:18px; font-weight:600; color:#111827; }
+
+        /* Inputs */
+        .field { margin-bottom:16px; position: relative; /* Added relative for icon positioning */ }
+        .field label { font-size:14px; font-weight:500; color:#374151; display:block; margin-bottom:6px; }
+        .field input { width:100%; padding:12px 14px; border-radius:8px; border:1px solid #d1d5db; background: rgba(255,255,255,0.85); font-size:14px; outline:none; }
+        .field input:focus { border-color:#4f46e5; box-shadow:0 0 0 3px rgba(79,70,229,0.15); }
+
+        /* --- NEW: Eye Icon Styles --- */
+        .eye-icon {
+            position: absolute;
+            right: 14px;
+            top: 38px; /* Aligns with the input field */
+            cursor: pointer;
+            color: #6b7280;
+            width: 20px;
+            height: 20px;
+            user-select: none;
+        }
+        .eye-icon:hover { color: #4f46e5; }
+
+        /* Buttons */
+        .btn { width:100%; margin-top:12px; padding:13px; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer; }
+        .login-btn { background:#4f46e5; color:white; }
+        .login-btn:hover { background:#4338ca; }
+        .register-btn { background:#10b981; color:white; }
+        .register-btn:hover { background:#059669; }
+
+        /* Footer & Utils */
+        .footer { margin-top:18px; text-align:center; font-size:14px; color:#374151; }
+        .footer a { color:#4f46e5; font-weight:600; text-decoration:none; cursor:pointer; }
+        .hidden { display:none; }
+    </style>
+</head>
+
+<body class="login-body">
+
+    <div class="background"></div>
+
+    <div class="glass-card">
+
+        <div id="loginForm">
+            <div class="brand">
+                <h1>SuperMall 🛍️</h1>
+                <p>Member Login</p>
+            </div>
+
+            <div class="field">
+                <label>User ID</label>
+                <input type="text" id="loginId" placeholder="Enter User ID" autocomplete="off">
+            </div>
+
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="Enter Password">
+                <div class="eye-icon" onclick="togglePassword('loginPass', this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <button id="btnLogin" class="btn login-btn">Login</button>
+
+            <div class="footer">
+                New User? <a id="goRegister">Register Here</a>
+            </div>
+        </div>
+
+        <div id="registerForm" class="hidden">
+            <div class="brand">
+                <h1>SuperMall 🛍️</h1>
+                <p>Create Account</p>
+            </div>
+
+            <div class="field">
+                <label>Full Name</label>
+                <input type="text" id="regName" placeholder="John Doe" autocomplete="off">
+            </div>
+
+            <div class="field">
+                <label>Create User ID</label>
+                <input type="text" id="regId" placeholder="Ex: john123" autocomplete="off">
+            </div>
+
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="regPass" placeholder="Strong password">
+                <div class="eye-icon" onclick="togglePassword('regPass', this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmPass" placeholder="Re-type password">
+                <div class="eye-icon" onclick="togglePassword('confirmPass', this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <button id="btnRegister" class="btn register-btn">Register Now</button>
+
+            <div class="footer">
+                Already have an account? <a id="goLogin">Login Here</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="js/auth.js"></script>
+
+    <script>
+        function togglePassword(inputId, iconDiv) {
+            const input = document.getElementById(inputId);
+            
+            // SVG Strings for Open and Closed Eye
+            const eyeOpen = `
+
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                </svg>`;
+                
+            const eyeClosed = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>`;
+                
+
+            if (input.type === "password") {
+                input.type = "text";
+                iconDiv.innerHTML = eyeOpen; // Show "Slash" eye
+            } else {
+                input.type = "password";
+                iconDiv.innerHTML = eyeClosed; // Show "Normal" eye
+            }
+        }
+    </script>
+
+</body>
+</html>
